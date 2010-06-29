@@ -6,8 +6,8 @@ import javax.swing.table.DefaultTableModel;
 import org.ajmm.vdj.database.Song;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.19
  */
@@ -18,7 +18,7 @@ public class VDJTableModel extends DefaultTableModel
 	protected void setDataVector(Vector<Vector<Song>> dataVector) {
 		this.dataVector = dataVector;
 	}
-	
+
 	@Override
 	public boolean isCellEditable(int row, int column) {
 		return column > 0 && column < 7;
@@ -50,12 +50,12 @@ public class VDJTableModel extends DefaultTableModel
 		if (column == 8) value = song.bpm().getBpm();			else
 		if (column == 9) value = song.fame().getKey();
 
-		/* do not display negative integers by returning value as null */ 
+		/* do not display negative integers by returning value as null */
 		if (value instanceof Integer && (Integer)value == -1) value = null;
-		
+
 		return value;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void setValueAt(Object aValue, int row, int column)
@@ -77,7 +77,7 @@ public class VDJTableModel extends DefaultTableModel
 		else
 		if (column == 5) song.display().setGenre(valueString);			else
 		if (column == 6) song.comment().setNodeValue(valueString);
-		
+
 	}
-	
+
 }

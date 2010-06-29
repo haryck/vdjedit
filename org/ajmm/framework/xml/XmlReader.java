@@ -6,12 +6,12 @@ import java.util.logging.Logger;
 public abstract class XmlReader
 {
 	protected static final Logger logger = Logger.getLogger(XmlReader.class.getName());
-	
+
 	@SuppressWarnings("unchecked")
 	public static XmlNode parse(String location, Class<? extends XmlNodeFactory> factoryClass)
 	{
 		Class<? extends XmlNode> type = null;
-		
+
 		try
 		{
 			Method method = factoryClass.getMethod("getParentNodeClass", (Class[])null);
@@ -20,7 +20,7 @@ public abstract class XmlReader
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		long start = System.currentTimeMillis();
 		logger.info("attempting to parse " + type.getName() +" \"" + location + "\"");
 

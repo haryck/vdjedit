@@ -4,13 +4,13 @@ import org.ajmm.framework.xml.XmlWriter;
 import org.ajmm.vdj.database.Database;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.17
  */
 public class VDJXmlWriter extends XmlWriter
-{	
+{
 	private VDJXmlWriter(Database database, String location) {
 		super(database, location);
 	}

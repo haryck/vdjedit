@@ -8,25 +8,25 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.17
  */
 public abstract class XmlWriter
 {
 	protected static final Logger logger = Logger.getLogger(XmlWriter.class.getName());
-	
+
 	private final XmlNode xmlNode;
 	private final String location;
 	private Document document;
-	
+
 	protected XmlWriter(XmlNode xmlNode, String location)
 	{
 		this.xmlNode = xmlNode;
 		this.location = location;
 	}
-	
+
 	protected void write() throws Exception
 	{
 		/* create an empty xml document or throw exception if it fails */
@@ -45,13 +45,13 @@ public abstract class XmlWriter
 		while (itr.hasNext()) {
 			append(docElement, itr.next());
 		}
-		
+
 		document.appendChild(docElement);
-		
+
 		/* save the created xml document or throw exception if it fails */
 		if (!XmlUtil.save(document, location)) throw XmlUtil.exception();
 	}
-	
+
 	private void append(Element parent, XmlNode xmlNode)
 	{
 		Element element = document.createElement(xmlNode.getName());
@@ -69,10 +69,10 @@ public abstract class XmlWriter
 				append(element, itr.next());
 			}
 		}
-		
+
 		if (!xmlNode.isEmpty()) parent.appendChild(element);
 	}
-		
+
 	private void writeAttributes(Element element, XmlNode xmlNode)
 	{
 		Map<String, String> attributes = xmlNode.getAttributes();

@@ -3,8 +3,8 @@ package org.ajmm.vdj.database;
 import org.ajmm.framework.xml.XmlNode;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.16
  */
@@ -12,11 +12,11 @@ public class Display extends XmlNode
 {
 	public static final int VALUE_COVER_LOCALFILE	= 1025;
 	public static final int VALUE_COVER_FROMTAG		= 2049;
-	
+
 	public Display() {
 		super("Display", 0);
 	}
-	
+
 	public String getAuthor() {
 		return getAttribute("Author");
 	}

@@ -3,8 +3,8 @@ package org.ajmm.vdj.database;
 import org.ajmm.framework.xml.XmlNode;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.19
  */
@@ -14,7 +14,7 @@ public class Song extends XmlNode implements Comparable<Song>
 	public static final int VALUE_FLAG_SOUNDCARD	= 4;
 	public static final int VALUE_FLAG_KARAOKE		= 32;
 	public static final int VALUE_FLAG_VIDEO		= 64;
-	
+
 	private Display display;
 	private Infos infos;
 	private Comment comment;
@@ -22,7 +22,7 @@ public class Song extends XmlNode implements Comparable<Song>
 	private FAME fame;
 	private Automix automix;
 	private Link link;
-	
+
 	public Song() {
 		super("Song", 7);
 	}
@@ -46,11 +46,11 @@ public class Song extends XmlNode implements Comparable<Song>
 	public int getFlag() {
 		return getAttributeAsInteger("Flag");
 	}
-	
+
 	public int setFlag(int flag) {
 		return setAttribute("Flag", flag);
 	}
-	
+
 	@Override
 	public boolean addChild(XmlNode element)
 	{
@@ -65,10 +65,10 @@ public class Song extends XmlNode implements Comparable<Song>
 			if (element instanceof Automix)	automix	= (Automix)element;	else
 			if (element instanceof Link)	link	= (Link)element;
 		}
-		
+
 		return added;
 	}
-	
+
 	public Display display()
 	{
 		if (display == null) addChild(new Display());
@@ -114,5 +114,5 @@ public class Song extends XmlNode implements Comparable<Song>
 	public int compareTo(Song s) {
 		return getFilePath().compareToIgnoreCase(s.getFilePath());
 	}
-	
+
 }

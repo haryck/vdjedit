@@ -3,8 +3,8 @@ package org.ajmm.vdj.database;
 import org.ajmm.framework.xml.XmlNode;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.16
  */
@@ -13,11 +13,11 @@ public class Infos extends XmlNode
 	public Infos() {
 		super("Infos", 0);
 	}
-	
+
 	public int getSongLength() {
 		return (int)Math.round(getInternalSongLength()/44100.0);
 	}
-	
+
 	public int getInternalSongLength() {
 		return getAttributeAsInteger("SongLength");
 	}
@@ -33,7 +33,7 @@ public class Infos extends XmlNode
 	public int setFirstSeen(int firstSeen) {
 		return setAttribute("FirstSeen", firstSeen);
 	}
-	
+
 	public int getFirstPlay() {
 		return getAttributeAsInteger("FirstPlay");
 	}
