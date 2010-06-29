@@ -307,7 +307,7 @@ public class Database extends XmlNode
 			if (systemDbDrive != getDrive(root)) {
 				File localDbFile = new File(root, "VirtualDJ Local Database v6.xml");
 				if (localDbFile.exists() && localDbFile.canWrite()) {
-					String drive = getDrive(systemDbFile);
+					String drive = getDrive(localDbFile);
 					dbFileMap.put(drive, localDbFile);
 				}
 			}
