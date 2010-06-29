@@ -28,13 +28,13 @@ import org.ajmm.vdj.database.Database;
 import org.ajmm.vdj.gui.VDJTable;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.28
  */
 public class Main extends JFrame
-{	
+{
 	private static final long serialVersionUID = 4648172894076113183L;
 	private static final String APPLICATION_NAME = "Virtual DJ Database Editor";
 	private static final FilenameFilter FILE_NAME_FILTER = new FilenameFilter() {
@@ -51,21 +51,21 @@ public class Main extends JFrame
 	private final JLabel statusBar;
 
 	private Database database;
-	
+
 	public Main()
 	{
 		super(APPLICATION_NAME);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
+
 		{
 			/*
 			 * create the menu bar for the application
 			 */
 			JMenuBar menuBar = new JMenuBar();
 			setJMenuBar(menuBar);
-			
+
 			/*
-			 * 
+			 *
 			 */
 			{
 				JMenu menu = new JMenu("File");
@@ -112,7 +112,7 @@ public class Main extends JFrame
 
 				});
 				menu.add(menuItem);
-				
+
 				menu.add(new JSeparator());
 				menuItem = new JMenuItem("Exit");
 				menuItem.addActionListener(new ActionListener()
@@ -124,9 +124,9 @@ public class Main extends JFrame
 				});
 				menu.add(menuItem);
 			}
-			
+
 			/*
-			 * 
+			 *
 			 */
 			{
 				JMenu menu = new JMenu("View");
@@ -137,7 +137,7 @@ public class Main extends JFrame
 					public void actionPerformed(ActionEvent e) {
 						toggleViewType(viewAudioMenuItem);
 					}
-					
+
 				});
 				menu.add(viewAudioMenuItem);
 
@@ -146,7 +146,7 @@ public class Main extends JFrame
 					public void actionPerformed(ActionEvent e) {
 						toggleViewType(viewVideoMenuItem);
 					}
-					
+
 				});
 				menu.add(viewVideoMenuItem);
 
@@ -155,12 +155,12 @@ public class Main extends JFrame
 					public void actionPerformed(ActionEvent e) {
 						toggleViewType(viewKaraokeMenuItem);
 					}
-					
+
 				});
 				menu.add(viewKaraokeMenuItem);
 			}
 		}
-		
+
 		{
 			/*
 			 * create search field to search through entries in the database
@@ -169,10 +169,10 @@ public class Main extends JFrame
 			JPanel panel = new JPanel();
 			panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			add(panel, BorderLayout.NORTH);
-			
+
 			JLabel label = new JLabel("Search");
 			panel.add(label);
-			
+
 			searchTextField = new JTextField(36);
 			searchTextField.setToolTipText("Search for songs with a matching title, artist, album, genre or year");
 			searchTextField.addMouseListener(new MouseAdapter()
@@ -198,11 +198,11 @@ public class Main extends JFrame
 						table.filter(filter);
 					}
 				}
-				
+
 			});
 			panel.add(searchTextField);
 		}
-		
+
 		{
 			/*
 			 * create the table to display the loaded database
@@ -210,15 +210,15 @@ public class Main extends JFrame
 			JScrollPane scrollPane = new JScrollPane(table = new VDJTable());
 			add(scrollPane, BorderLayout.CENTER);
 		}
-		
+
 		{
 			/*
-			 * 
+			 *
 			 */
 			statusBar = new JLabel("Ready");
 			add(statusBar, BorderLayout.SOUTH);
 		}
-		
+
 		/*
 		 * initialization code to display splash screen and load databases
 		 */
@@ -234,13 +234,13 @@ public class Main extends JFrame
 				e.printStackTrace();
 			}
 		}
-		
+
 		setPreferredSize(new Dimension(1024, 680));
 		pack();
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
-	
+
 	public static void main(String[] args)
 	{
 		/*
@@ -260,12 +260,12 @@ public class Main extends JFrame
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			} catch (Exception e1) { e1.printStackTrace(); }
 		}
-		
+
 		/* start the application */
 		new Main();
-		
+
 	}
-	
+
 	private Database loadAllDatabases() throws Exception
 	{
 		/* temporary variable to store the parent database */
@@ -291,19 +291,19 @@ public class Main extends JFrame
 
 		table.setTableData(database);
 		statusBar.setText(database.getSongCount() + " entries loaded");
-		
+
 		return database;
 	}
-	
+
 	private void toggleViewType(JMenuItem menuItem)
 	{
 		String[] split = menuItem.getText().toLowerCase().split(" ");
 		split[0] = (split[0].equals("hide")) ? "Show" : "Hide";
 		menuItem.setText(split[0] + " " + split[1]);
-		
+
 		if (split[1].equals("audio"))	table.toggleShowAudio();	else
 		if (split[1].equals("video"))	table.toggleShowVideo();	else
 		if (split[1].equals("karaoke"))	table.toggleShowKaraoke();
 	}
-	
+
 }

@@ -12,15 +12,15 @@ import javax.swing.table.TableColumn;
 import org.ajmm.vdj.database.Song;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.28
  */
 public class VDJTableHeader extends JTableHeader
-{	
-	private static final long serialVersionUID = -1816760537419500898L;	
-	
+{
+	private static final long serialVersionUID = -1816760537419500898L;
+
 	public static final String[] COLUMN_NAMES = new String[] {
 		"Filename", "Artist", "Album", "Title", "Year", "Genre", "Comment",
 		"Length", "BPM", "Key" };
@@ -28,14 +28,14 @@ public class VDJTableHeader extends JTableHeader
 	private static final char ASCENDING_CHAR = '\u25b2';
 	private final boolean[] isDescendingOrder;
 	private int lastSortedColumn = -1;
-	
+
 	public VDJTableHeader()
 	{
 		this.isDescendingOrder = new boolean[COLUMN_NAMES.length];
 		setReorderingAllowed(false);
 		addMouseListener(getMouseAdapter());
 	}
-	
+
 	public void reset()
 	{
 		if (lastSortedColumn >= 0)
@@ -44,48 +44,48 @@ public class VDJTableHeader extends JTableHeader
 			String columnHeader = (String)tableColumn.getHeaderValue();
 			columnHeader = columnHeader.substring(0, columnHeader.length()-2);
 			tableColumn.setHeaderValue(columnHeader);
-			
+
 			for (int i = 0; i < isDescendingOrder.length; i++) {
 				isDescendingOrder[i] = false;
 			}
 			lastSortedColumn = -1;
 		}
-		
+
 		repaint();
 	}
-		
+
 	private MouseAdapter getMouseAdapter()
 	{
 		return new MouseAdapter()
 		{
 			@SuppressWarnings("unchecked")
-			@Override		
+			@Override
 			public void mouseClicked(MouseEvent e)
 			{
 				/* only respond to a left mouse button event */
 				if (e.getButton() != MouseEvent.BUTTON1) return;
-				
+
 				DefaultTableModel model =
 					(DefaultTableModel)getTable().getModel();
-				
+
 				int column = columnAtPoint(e.getPoint());
 				Vector<Vector<Object>> data = model.getDataVector();
 				Collections.sort(data, getRowComparator(column));
-				
+
 				isDescendingOrder[column] = !isDescendingOrder[column];
-				
-				
+
+
 				TableColumn tableColumn;
 				String columnHeader;
-				
+
 				if (lastSortedColumn >= 0)
 				{
 					tableColumn = getColumnModel().getColumn(lastSortedColumn);
 					columnHeader = (String)tableColumn.getHeaderValue();
 					columnHeader = columnHeader.substring(0, columnHeader.length()-2);
-					tableColumn.setHeaderValue(columnHeader);					
+					tableColumn.setHeaderValue(columnHeader);
 				}
-				
+
 				tableColumn = getColumnModel().getColumn(column);
 				columnHeader = (String)tableColumn.getHeaderValue() + ' ' +
 					(isDescendingOrder[column] ? ASCENDING_CHAR : DESCENDING_CHAR);
@@ -97,7 +97,7 @@ public class VDJTableHeader extends JTableHeader
 			}
 		};
 	}
-	
+
 	private Comparator<Vector<Object>> getRowComparator(final int column)
 	{
 		return new Comparator<Vector<Object>>()
@@ -116,17 +116,17 @@ public class VDJTableHeader extends JTableHeader
 
 				if (isDescendingOrder[column]) order *= -1;
 				if (column == 8) order *= -1; /* bpm column must be inverted */
-				
+
 				return order;
 			}
-			
+
 		};
 	}
-	
+
 	private Object getSongComparatorValue(Song song, int index)
 	{
 		Object value = null;
-			
+
 		if (index == 0) value = song.getFilePath();						else
 		if (index == 1) value = song.display().getAuthor();				else
 		if (index == 2) value = song.display().getAlbum();				else
@@ -137,8 +137,8 @@ public class VDJTableHeader extends JTableHeader
 		if (index == 7) value = song.infos().getInternalSongLength();	else
 		if (index == 8) value = song.bpm().getInternalBpm();			else
 		if (index == 9) value = song.fame().getKey();
-			
+
 		return value;
 	}
-		
+
 }

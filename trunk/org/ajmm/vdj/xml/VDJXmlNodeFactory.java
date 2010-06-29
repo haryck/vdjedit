@@ -19,8 +19,8 @@ import org.ajmm.vdj.database.Song;
 import org.ajmm.vdj.database.VirtualFolder;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.17
  */
@@ -28,11 +28,11 @@ public class VDJXmlNodeFactory extends XmlNodeFactory
 {
 	private static final Map<String, Class<? extends XmlNode>> map;
 	private static VDJXmlNodeFactory factoryInstance;
-	
+
 	static
 	{
 		map = new TreeMap<String, Class<? extends XmlNode>>();
-		
+
 		map.put( "VirtualDJ_Database",	Database.class			);
 		map.put( "FavoriteFolder",		FavoriteFolder.class	);
 		map.put( "FilterFolder",		FilterFolder.class		);
@@ -46,11 +46,11 @@ public class VDJXmlNodeFactory extends XmlNodeFactory
 		map.put( "Automix",				Automix.class			);
 		map.put( "Link",				Link.class				);
 	}
-	
+
 	private VDJXmlNodeFactory() {
-		
+
 	}
-	
+
 	public static VDJXmlNodeFactory getInstance()
 	{
 		if (factoryInstance == null)
@@ -62,7 +62,7 @@ public class VDJXmlNodeFactory extends XmlNodeFactory
 	public static Class<? extends XmlNode> getParentNodeClass() {
 		return Database.class;
 	}
-	
+
 	@Override
 	public XmlNode parse(String qName) {
 		return super.parse(qName, map);

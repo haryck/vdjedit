@@ -20,15 +20,15 @@ import org.ajmm.vdj.database.Database;
 import org.ajmm.vdj.database.Song;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.28
  */
 public class VDJTable extends JTable
 {
 	private static final long serialVersionUID = 8358734115640035667L;
-	
+
 	private final VDJTableModel  model;
 	private final VDJTableHeader header;
 	private final JPopupMenu bpmContextMenu;
@@ -36,18 +36,18 @@ public class VDJTable extends JTable
 	private boolean showAudio = true;
 	private boolean showVideo = true;
 	private boolean showKaraoke = true;
-	
+
 	private Set<Song> songs;
-	
+
 	public VDJTable()
 	{
 		model = new VDJTableModel();
 		setModel(model);
-		
-		header = new VDJTableHeader(); 
+
+		header = new VDJTableHeader();
 		header.setColumnModel(getColumnModel());
 		setTableHeader(header);
-		
+
 		bpmContextMenu = new JPopupMenu();
 		addKeyListener(new KeyAdapter()
 		{
@@ -59,7 +59,7 @@ public class VDJTable extends JTable
 		});
 		addMouseListener(getMouseAdapter());
 	}
-	
+
 	private MouseAdapter getMouseAdapter()
 	{
 		JMenuItem menuItem = new JMenuItem("Half BPM");
@@ -79,13 +79,13 @@ public class VDJTable extends JTable
 						int bpm = song.bpm().getInternalBpm();
 						song.bpm().setInternalBpm(bpm*2);
 						bpmContextMenu.setVisible(false);
-						model.fireTableDataChanged();	
+						model.fireTableDataChanged();
 					}
 				}
 			}
 		});
 		bpmContextMenu.add(menuItem);
-		
+
 		menuItem = new JMenuItem("Double BPM");
 		menuItem.addMouseListener(new MouseAdapter()
 		{
@@ -103,13 +103,13 @@ public class VDJTable extends JTable
 						int bpm = song.bpm().getInternalBpm();
 						song.bpm().setInternalBpm((int)Math.round(bpm/2.0));
 						bpmContextMenu.setVisible(false);
-						model.fireTableDataChanged();	
+						model.fireTableDataChanged();
 					}
 				}
 			}
 		});
 		bpmContextMenu.add(menuItem);
-		
+
 		return new MouseAdapter()
 		{
 			@Override
@@ -119,22 +119,22 @@ public class VDJTable extends JTable
 				{
 					boolean match = false;
 					int rowAtPoint = rowAtPoint(e.getPoint());
-					
+
 					for (int selectedRow : getSelectedRows()) {
 						if (rowAtPoint == selectedRow) {
 							match = true; break;
 						}
 					}
-					
+
 					if (!match) {
 						getSelectionModel()
 							.setSelectionInterval(rowAtPoint, rowAtPoint);
 					}
 				}
-				
+
 				bpmContextMenu.setVisible(false);
 			}
-			
+
 			@Override
 			public void mouseReleased(MouseEvent e)
 			{
@@ -157,7 +157,7 @@ public class VDJTable extends JTable
 			for (int i = 0; i < model.getColumnCount(); i++) {
 				getColumnModel().getColumn(i).setMinWidth(0);
 			}
-						
+
 			getColumnModel().getColumn(0).setPreferredWidth(0);
 			getColumnModel().getColumn(1).setPreferredWidth(64);
 			getColumnModel().getColumn(2).setPreferredWidth(128);
@@ -178,16 +178,16 @@ public class VDJTable extends JTable
 		{
 			header.reset();
 		}
-		
+
 		songs = database.getSongs();
 		setTableData(songs);
 	}
-	
+
 	private void setTableData(Collection<Song> songs, String filter)
 	{
 		/* no action if a database has not yet been loaded */
 		if (songs == null) return;
-		
+
 		Vector<Vector<Song>> dataVector = new Vector<Vector<Song>>();
 		for (Song song : songs)
 		{
@@ -204,14 +204,14 @@ public class VDJTable extends JTable
 					song.display().getAlbum() + " " +
 					song.display().getGenre() + " " +
 					song.display().getYear();
-			
+
 			searchString = searchString.toLowerCase();
 
 			for (int i = 0; i < filters.length; i++)
 			{
-				/* exit the loop if the search term was not found */ 
+				/* exit the loop if the search term was not found */
 				if (!searchString.contains(filters[i])) break;
-				
+
 				if (i == filters.length-1)
 				{
 					Vector<Song> v = new Vector<Song>();
@@ -220,16 +220,16 @@ public class VDJTable extends JTable
 				}
 			}
 		}
-		
+
 		model.setDataVector(dataVector);
 		model.fireTableDataChanged();
 	}
-	
+
 	private void setTableData(Collection<Song> songs)
 	{
 		/* no action if a database has not yet been loaded */
 		if (songs == null) return;
-		
+
 		Vector<Vector<Song>> dataVector = new Vector<Vector<Song>>();
 		for (Song song : songs)
 		{
@@ -238,35 +238,35 @@ public class VDJTable extends JTable
 					!showKaraoke && song.getFlag() == Song.VALUE_FLAG_KARAOKE ||
 					!showAudio && song.getFlag() == -1)
 				continue;
-			
+
 			Vector<Song> v = new Vector<Song>();
 			v.add(song);
 			dataVector.add(v);
 		}
-		
+
 		model.setDataVector(dataVector);
 		model.fireTableDataChanged();
 	}
-	
+
 	public void filter(String filter)
 	{
 		if (filter == null || filter.length() == 0)
 			setTableData(songs);
 		else setTableData(songs, filter);
 	}
-	
+
 	public void toggleShowAudio()
 	{
 		showAudio = !showAudio;
 		setTableData(songs);
 	}
-	
+
 	public void toggleShowVideo()
 	{
 		showVideo = !showVideo;
 		setTableData(songs);
 	}
-	
+
 	public void toggleShowKaraoke()
 	{
 		showKaraoke = !showKaraoke;
@@ -286,8 +286,8 @@ public class VDJTable extends JTable
 				value = (String)getValueAt(rowIndex, vColIndex);
 			component.setToolTipText(value);
 		}
-		
+
 		return c;
 	}
-	
+
 }

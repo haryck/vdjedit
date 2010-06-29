@@ -1,8 +1,8 @@
 package org.ajmm.vdj.database.exception;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.11
  */
@@ -13,7 +13,7 @@ public class DuplicateSongException extends Exception
 	public DuplicateSongException(String message) {
 		super(message);
 	}
-	
+
 	public DuplicateSongException() {
 
 	}

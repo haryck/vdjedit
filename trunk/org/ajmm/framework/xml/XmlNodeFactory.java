@@ -8,23 +8,23 @@ import java.util.Map;
  * 		<li>Class&lt;? extends XmlNode&gt; getParentNodeClass()</li>
  * 		<li>XmlNode parse(String qName)</li>
  * </ul>
- * 
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.17
  */
 public abstract class XmlNodeFactory
 {
 	protected XmlNodeFactory() {
-		
+
 	}
-	
+
 	public abstract XmlNode parse(String qName);
-	
+
 	protected static XmlNode parse(String qName,
 			Map<String, Class<? extends XmlNode>> nodeMap)
 	{
 		XmlNode node = null;
-		
+
 		if (nodeMap != null)
 		{
 			try
@@ -34,11 +34,11 @@ public abstract class XmlNodeFactory
 					node = nodeClass.newInstance();
 				}
 			}
-			catch (Exception e) { 
+			catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		return (node == null) ? new XmlNode(qName) :  node;
 	}
 

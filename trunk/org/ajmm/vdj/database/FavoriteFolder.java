@@ -1,8 +1,8 @@
 package org.ajmm.vdj.database;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.14
  */

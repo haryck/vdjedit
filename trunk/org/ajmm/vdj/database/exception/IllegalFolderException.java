@@ -1,8 +1,8 @@
 package org.ajmm.vdj.database.exception;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.11
  */
@@ -13,7 +13,7 @@ public class IllegalFolderException extends Exception
 	public IllegalFolderException(String message) {
 		super(message);
 	}
-	
+
 	public IllegalFolderException() {
 
 	}

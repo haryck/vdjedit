@@ -1,8 +1,8 @@
 package org.ajmm.vdj.database.exception;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.11
  */
@@ -13,9 +13,9 @@ public class IllegalSongException extends Exception
 	public IllegalSongException(String message) {
 		super(message);
 	}
-	
+
 	public IllegalSongException() {
-		
+
 	}
-	
+
 }

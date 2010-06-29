@@ -3,8 +3,8 @@ package org.ajmm.vdj.database;
 import org.ajmm.framework.xml.XmlNode;
 
 /**
- * 
- * 
+ *
+ *
  * @author	Andrew Mackrodt
  * @version	2010.06.16
  */
@@ -37,5 +37,5 @@ public class FAME extends XmlNode
 	public String setKey(String key) {
 		return setAttribute("Key", key);
 	}
-	
+
 }
