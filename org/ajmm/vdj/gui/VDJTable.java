@@ -1,9 +1,5 @@
 package org.ajmm.vdj.gui;
 import java.awt.Component;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
@@ -23,7 +19,7 @@ import org.ajmm.vdj.database.Song;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.28
+ * @version	2010.06.30
  */
 public class VDJTable extends JTable
 {
@@ -42,21 +38,11 @@ public class VDJTable extends JTable
 	public VDJTable()
 	{
 		model = new VDJTableModel();
-		setModel(model);
-
-		header = new VDJTableHeader();
-		header.setColumnModel(getColumnModel());
-		setTableHeader(header);
-
+		header = new VDJTableHeader(getColumnModel());
 		bpmContextMenu = new JPopupMenu();
-		addKeyListener(new KeyAdapter()
-		{
-			public void keyPressed(KeyEvent e)
-			{
-				if (bpmContextMenu.isVisible())
-					bpmContextMenu.setVisible(false);
-			}
-		});
+
+		setModel(model);
+		setTableHeader(header);
 		addMouseListener(getMouseAdapter());
 	}
 
@@ -67,7 +53,7 @@ public class VDJTable extends JTable
 		{
 			@SuppressWarnings("unchecked")
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				if (e.getButton() == MouseEvent.BUTTON1)
 				{
@@ -78,8 +64,11 @@ public class VDJTable extends JTable
 						Song song = vector.get(0);
 						int bpm = song.bpm().getInternalBpm();
 						song.bpm().setInternalBpm(bpm*2);
-						bpmContextMenu.setVisible(false);
+						int[] selectedRows = getSelectedRows();
 						model.fireTableDataChanged();
+						for (int j : selectedRows) {
+							changeSelection(j, 0, true, false);
+						}
 					}
 				}
 			}
@@ -91,7 +80,7 @@ public class VDJTable extends JTable
 		{
 			@SuppressWarnings("unchecked")
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				if (e.getButton() == MouseEvent.BUTTON1)
 				{
@@ -102,8 +91,11 @@ public class VDJTable extends JTable
 						Song song = vector.get(0);
 						int bpm = song.bpm().getInternalBpm();
 						song.bpm().setInternalBpm((int)Math.round(bpm/2.0));
-						bpmContextMenu.setVisible(false);
+						int[] selectedRows = getSelectedRows();
 						model.fireTableDataChanged();
+						for (int j : selectedRows) {
+							changeSelection(j, 0, true, false);
+						}
 					}
 				}
 			}
@@ -113,8 +105,9 @@ public class VDJTable extends JTable
 		return new MouseAdapter()
 		{
 			@Override
-			public void mousePressed(MouseEvent e)
+			public void mouseClicked(MouseEvent e)
 			{
+				/* only act on a right mouse click */
 				if (e.getButton() == MouseEvent.BUTTON3)
 				{
 					boolean match = false;
@@ -130,19 +123,9 @@ public class VDJTable extends JTable
 						getSelectionModel()
 							.setSelectionInterval(rowAtPoint, rowAtPoint);
 					}
-				}
 
-				bpmContextMenu.setVisible(false);
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e)
-			{
-				/* only act on a right mouse click */
-				if (e.getButton() == MouseEvent.BUTTON3)
-				{
-					Point p = MouseInfo.getPointerInfo().getLocation();
-					bpmContextMenu.setLocation(p);
+					bpmContextMenu.setInvoker(VDJTable.this);
+					bpmContextMenu.setLocation(e.getXOnScreen(), e.getYOnScreen());
 					bpmContextMenu.setVisible(true);
 				}
 			}
@@ -151,33 +134,7 @@ public class VDJTable extends JTable
 
 	public void setTableData(Database database)
 	{
-		if (model.getColumnCount() == 0)
-		{
-			model.setColumnIdentifiers(VDJTableHeader.COLUMN_NAMES);
-			for (int i = 0; i < model.getColumnCount(); i++) {
-				getColumnModel().getColumn(i).setMinWidth(0);
-			}
-
-			getColumnModel().getColumn(0).setPreferredWidth(0);
-			getColumnModel().getColumn(1).setPreferredWidth(64);
-			getColumnModel().getColumn(2).setPreferredWidth(128);
-			getColumnModel().getColumn(3).setPreferredWidth(256);
-			getColumnModel().getColumn(4).setMinWidth(48);
-			getColumnModel().getColumn(4).setMaxWidth(48);
-			getColumnModel().getColumn(5).setMinWidth(96);
-			getColumnModel().getColumn(5).setMaxWidth(96);
-			getColumnModel().getColumn(6).setPreferredWidth(160);
-			getColumnModel().getColumn(7).setMinWidth(56);
-			getColumnModel().getColumn(7).setMaxWidth(56);
-			getColumnModel().getColumn(8).setMinWidth(48);
-			getColumnModel().getColumn(8).setMaxWidth(48);
-			getColumnModel().getColumn(9).setMinWidth(40);
-			getColumnModel().getColumn(9).setMaxWidth(40);
-		}
-		else
-		{
-			header.reset();
-		}
+		header.reset();
 
 		songs = database.getSongs();
 		setTableData(songs);
