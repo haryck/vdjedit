@@ -9,7 +9,7 @@ import org.ajmm.vdj.database.Song;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.19
+ * @version	2010.06.30
  */
 public class VDJTableModel extends DefaultTableModel
 {
@@ -30,15 +30,16 @@ public class VDJTableModel extends DefaultTableModel
 	{
 		Song song = (Song)((Vector<Song>)dataVector.get(row)).get(0);
 		Object value = null;
-
-		if (column == 0) value = song.getFilePath();			else
-		if (column == 1) value = song.display().getAuthor();	else
-		if (column == 2) value = song.display().getAlbum();		else
-		if (column == 3) value = song.display().getTitle();		else
-		if (column == 4) value = song.display().getYear();		else
-		if (column == 5) value = song.display().getGenre();		else
-		if (column == 6) value = song.comment().getNodeValue();	else
-		if (column == 7)
+		
+		String identifier = getColumnName(column);
+		if (identifier.equals("Filename")) value = song.getFilePath();			    else
+		if (identifier.equals("Artist"))   value = song.display().getAuthor();	    else
+		if (identifier.equals("Album"))    value = song.display().getAlbum();		else
+		if (identifier.equals("Title"))    value = song.display().getTitle();		else
+		if (identifier.equals("Year"))     value = song.display().getYear();		else
+		if (identifier.equals("Genre"))    value = song.display().getGenre();		else
+		if (identifier.equals("Comment"))  value = song.comment().getNodeValue();	else
+		if (identifier.equals("Length"))
 		{
 			int length = song.infos().getSongLength();
 			int min = (int)(length/60.0);
@@ -47,11 +48,11 @@ public class VDJTableModel extends DefaultTableModel
 			value = min+":"+String.format("%02d", sec);
 		}
 		else
-		if (column == 8) value = song.bpm().getBpm();			else
-		if (column == 9) value = song.fame().getKey();
+		if (identifier.equals("BPM")) value = song.bpm().getBpm();			else
+		if (identifier.equals("Key")) value = song.fame().getKey();
 
 		/* do not display negative integers by returning value as null */
-		if (value instanceof Integer && (Integer)value == -1) value = null;
+		if (value instanceof Integer && (Integer)value < 0) value = null;
 
 		return value;
 	}
@@ -64,10 +65,11 @@ public class VDJTableModel extends DefaultTableModel
 		Song song = vector.get(0);
 		String valueString = ((String)aValue).trim();
 
-		if (column == 1) song.display().setAuthor(valueString);			else
-		if (column == 2) song.display().setAlbum(valueString);			else
-		if (column == 3) song.display().setTitle(valueString);			else
-		if (column == 4)
+		String identifier = getColumnName(column);
+		if (identifier.equals("Artist"))  song.display().setAuthor(valueString);     	else
+		if (identifier.equals("Album"))   song.display().setAlbum(valueString);			else
+		if (identifier.equals("Title"))   song.display().setTitle(valueString);			else
+		if (identifier.equals("Year"))
 		{
 			if (valueString.length() == 0) song.display().setYear(-1);	else
 			if (valueString.matches("^\\d+$")) {
@@ -75,9 +77,8 @@ public class VDJTableModel extends DefaultTableModel
 			}
 		}
 		else
-		if (column == 5) song.display().setGenre(valueString);			else
-		if (column == 6) song.comment().setNodeValue(valueString);
-
+		if (identifier.equals("Genre"))   song.display().setGenre(valueString);			else
+		if (identifier.equals("Comment")) song.comment().setNodeValue(valueString);
 	}
 
 }
