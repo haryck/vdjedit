@@ -1,4 +1,5 @@
 package org.ajmm.vdj.gui;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import org.ajmm.vdj.database.Song;
 
@@ -15,41 +17,65 @@ import org.ajmm.vdj.database.Song;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.28
+ * @version	2010.06.30
  */
 public class VDJTableHeader extends JTableHeader
 {
 	private static final long serialVersionUID = -1816760537419500898L;
 
-	public static final String[] COLUMN_NAMES = new String[] {
+	private static final String[] COLUMN_NAMES = new String[] {
 		"Filename", "Artist", "Album", "Title", "Year", "Genre", "Comment",
 		"Length", "BPM", "Key" };
 	private static final char DESCENDING_CHAR = '\u25bc';
 	private static final char ASCENDING_CHAR = '\u25b2';
-	private final boolean[] isDescendingOrder;
-	private int lastSortedColumn = -1;
+	private boolean[] isDescendingOrder;
+	private int lastSortedColumn;
 
-	public VDJTableHeader()
+	public VDJTableHeader(TableColumnModel columnModel)
 	{
-		this.isDescendingOrder = new boolean[COLUMN_NAMES.length];
+		this.columnModel = columnModel;
 		setReorderingAllowed(false);
 		addMouseListener(getMouseAdapter());
 	}
 
 	public void reset()
 	{
-		if (lastSortedColumn >= 0)
+		if (columnModel.getColumnCount() == 0)
 		{
-			TableColumn tableColumn = getColumnModel().getColumn(lastSortedColumn);
+			for (int i = 0; i < COLUMN_NAMES.length; i++)
+			{
+				TableColumn tableColumn = new TableColumn(i);
+				tableColumn.setHeaderValue(COLUMN_NAMES[i]);
+				tableColumn.setMinWidth(0);
+				columnModel.addColumn(tableColumn);
+			}
+
+			columnModel.getColumn(0).setPreferredWidth(0);
+			columnModel.getColumn(1).setPreferredWidth(64);
+			columnModel.getColumn(2).setPreferredWidth(128);
+			columnModel.getColumn(3).setPreferredWidth(256);
+			columnModel.getColumn(4).setMinWidth(48);
+			columnModel.getColumn(4).setMaxWidth(48);
+			columnModel.getColumn(5).setMinWidth(96);
+			columnModel.getColumn(5).setMaxWidth(96);
+			columnModel.getColumn(6).setPreferredWidth(160);
+			columnModel.getColumn(7).setMinWidth(56);
+			columnModel.getColumn(7).setMaxWidth(56);
+			columnModel.getColumn(8).setMinWidth(48);
+			columnModel.getColumn(8).setMaxWidth(48);
+			columnModel.getColumn(9).setMinWidth(40);
+			columnModel.getColumn(9).setMaxWidth(40);
+		}
+		else if (lastSortedColumn >= 0)
+		{
+			TableColumn tableColumn = columnModel.getColumn(lastSortedColumn);
 			String columnHeader = (String)tableColumn.getHeaderValue();
 			columnHeader = columnHeader.substring(0, columnHeader.length()-2);
 			tableColumn.setHeaderValue(columnHeader);
-
-			for (int i = 0; i < isDescendingOrder.length; i++) {
-				isDescendingOrder[i] = false;
-			}
-			lastSortedColumn = -1;
 		}
+
+		isDescendingOrder = new boolean[COLUMN_NAMES.length];
+		lastSortedColumn = -1;
 
 		repaint();
 	}
@@ -123,7 +149,7 @@ public class VDJTableHeader extends JTableHeader
 		};
 	}
 
-	private Object getSongComparatorValue(Song song, int index)
+	private static Object getSongComparatorValue(Song song, int index)
 	{
 		Object value = null;
 
