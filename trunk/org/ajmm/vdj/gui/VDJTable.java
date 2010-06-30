@@ -38,11 +38,10 @@ public class VDJTable extends JTable
 	public VDJTable()
 	{
 		model = new VDJTableModel();
-		header = new VDJTableHeader(getColumnModel());
+		header = new VDJTableHeader(this);
 		bpmContextMenu = new JPopupMenu();
 
 		setModel(model);
-		setTableHeader(header);
 		addMouseListener(getMouseAdapter());
 	}
 
@@ -134,7 +133,7 @@ public class VDJTable extends JTable
 
 	public void setTableData(Database database)
 	{
-		header.reset();
+		header.init();
 
 		songs = database.getSongs();
 		setTableData(songs);
@@ -231,17 +230,16 @@ public class VDJTable extends JTable
 	}
 
 	@Override
-	public Component prepareRenderer(
-			TableCellRenderer renderer, int rowIndex, int vColIndex)
+	public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
 	{
-		Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
+		Component c = super.prepareRenderer(renderer, row, column);
 		if (c instanceof JComponent)
 		{
 			JComponent component = (JComponent)c;
-			String value = null;
-			if (vColIndex == 0)
-				value = (String)getValueAt(rowIndex, vColIndex);
-			component.setToolTipText(value);
+			String identifier = getColumnName(column);
+			String text = (identifier.equals("Filename"))
+					? (String)getValueAt(row, column) : null;			
+			component.setToolTipText(text);
 		}
 
 		return c;
