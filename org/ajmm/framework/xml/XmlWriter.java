@@ -29,7 +29,7 @@ public abstract class XmlWriter
 
 	protected void write() throws Exception
 	{
-		/* create an empty xml document or throw exception if it fails */
+		// create an empty xml document or throw exception if it fails
 		if ((document = XmlUtil.create()) == null) throw XmlUtil.exception();
 
 		Element docElement = document.createElement(xmlNode.getName());
@@ -48,7 +48,7 @@ public abstract class XmlWriter
 
 		document.appendChild(docElement);
 
-		/* save the created xml document or throw exception if it fails */
+		// save the created xml document or throw exception if it fails
 		if (!XmlUtil.save(document, location)) throw XmlUtil.exception();
 	}
 
