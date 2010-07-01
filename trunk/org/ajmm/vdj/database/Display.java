@@ -6,7 +6,7 @@ import org.ajmm.framework.xml.XmlNode;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.16
+ * @version	2010.06.30
  */
 public class Display extends XmlNode
 {
@@ -47,6 +47,14 @@ public class Display extends XmlNode
 
 	public String setAlbum(String album) {
 		return setAttribute("Album", album);
+	}
+
+	public String getComposer() {
+		return getAttribute("Composer");
+	}
+
+	public String setComposer(String composer) {
+		return setAttribute("Composer", composer);
 	}
 
 	public int getYear() {

@@ -12,7 +12,7 @@ import org.ajmm.framework.StringUtil;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.19
+ * @version	2010.07.01
  */
 public class XmlNode
 {
@@ -35,15 +35,15 @@ public class XmlNode
 		this.attributes	= new TreeMap<String, String>();
 	}
 
-	public String getNodeValue() {
+	protected String getNodeValue() {
 		return text;
 	}
 
-	public int getNodeValueLength() {
+	protected int getNodeValueLength() {
 		return (text == null) ? -1 : text.length();
 	}
 
-	public String setNodeValue(String text)
+	protected String setNodeValue(String text)
 	{
 		String oldValue = this.text;
 		this.text = text;
@@ -51,116 +51,87 @@ public class XmlNode
 		return oldValue;
 	}
 
-	public String getName() {
+	protected String getName() {
 		return name;
 	}
 
-	public boolean hasChildren() {
+	protected boolean hasChildren() {
 		return children.size() > 0;
 	}
 
-	public boolean hasChild(XmlNode element) {
+	protected boolean hasChild(XmlNode element) {
 		return children.contains(element);
 	}
 
-	public boolean addChild(XmlNode element)
-	{
-//		if (element.getChildCount() == 0
-//				&& element.getAttributeCount() == 0
-//				&& element.getNodeValueLength() < 1)
-//			return false;
-//
+	protected boolean addChild(XmlNode element) {
 		return children.add(element);
 	}
 
-	public boolean removeChild(XmlNode element) {
+	protected boolean removeChild(XmlNode element) {
 		return children.remove(element);
 	}
 
-	public Set<XmlNode> getChildren() {
+	protected Set<XmlNode> getChildren() {
 		return Collections.unmodifiableSet(children);
 	}
 
-	public int getChildCount() {
+	protected int getChildCount() {
 		return children.size();
 	}
 
-	public boolean hasAttributes() {
+	protected boolean hasAttributes() {
 		return attributes.size() > 0;
 	}
 
-	public boolean hasAttribute(String name) {
+	protected boolean hasAttribute(String name) {
 		return attributes.containsKey(name);
 	}
 
-	public String getAttribute(String name) {
+	protected String getAttribute(String name) {
 		return attributes.get(name);
 	}
 
-	public int getAttributeAsInteger(String name)
-	{
-		String valueString = attributes.get(name);
-		int value = -1;
-		if (valueString != null && valueString.matches("^\\d+$")) {
-			value = Integer.parseInt(valueString);
-		}
-		return value;
+	protected int getAttributeAsInteger(String name) {
+		return parseInt(attributes.get(name));
 	}
 
-	public String setAttribute(String name, String value)
-	{
-		String oldValueString = null;
+	protected String setAttribute(String name, String value) {
 		value = StringUtil.clean(value);
-
-		/* add an attribute to the document */
-		if (value != null && value.length() > 0)
-			oldValueString = attributes.put(name, value);
-		/* remove an attribute from the document */
-		else
-			oldValueString = attributes.remove(name);
-
-		return oldValueString;
-	}
-
-	public int setAttribute(String name, int value)
-	{
-		String oldValueString = null;
-		int oldValue = -1;
-
-		/* add an attribute to the document */
-		if (value >= 0)
-			oldValueString = attributes.put(name, ""+value);
-
-		/* remove an attribute from the document */
-		else
-			oldValueString = attributes.remove(name);
-
-
-		if (oldValueString != null&& oldValueString.matches("^\\d+$")) {
-			oldValue = Integer.parseInt(oldValueString);
-		}
-
+		String oldValue = (value != null && value.length() > 0)
+				? attributes.put(name, value)	  // add attribute
+				: attributes.remove(name);		  // remove attribute
 		return oldValue;
 	}
 
-	public String removeAttribute(String name) {
+	protected int setAttribute(String name, int value) {
+		String oldValue = (value >= 0)
+			    ? attributes.put(name, ""+value)  // add attribute
+			    : attributes.remove(name);		  // remove attribute
+	    return parseInt(oldValue);
+	}
+
+	protected String removeAttribute(String name) {
 		return setAttribute(name, null);
 	}
 
-	public Map<String, String> getAttributes() {
+	protected Map<String, String> getAttributes() {
 		return Collections.unmodifiableMap(attributes);
 	}
 
-	public int getAttributeCount() {
+	protected int getAttributeCount() {
 		return attributes.size();
 	}
 
-	public boolean isEmpty()
-	{
-		return
-				getChildCount() == 0
-						&& getAttributeCount() == 0
-						&& getNodeValueLength() < 1;
+	protected boolean isEmpty() {
+		return getChildCount() == 0
+				&& getAttributeCount() == 0
+				&& getNodeValueLength() < 1;
+	}
+
+	protected int parseInt(String string) {
+	    return
+	    		(string != null && string.matches("^\\d+$"))
+	    		? Integer.parseInt(string) : -1;
 	}
 
 }

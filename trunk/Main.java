@@ -9,7 +9,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FilenameFilter;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -25,28 +24,29 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.ajmm.vdj.database.Database;
-import org.ajmm.vdj.gui.VDJTable;
+import org.ajmm.vdj.gui.Table;
 
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.28
+ * @version	2010.07.01
  */
 public class Main extends JFrame
 {
 	private static final long serialVersionUID = 4648172894076113183L;
 	private static final String APPLICATION_NAME = "Virtual DJ Database Editor";
-	private static final FilenameFilter FILE_NAME_FILTER = new FilenameFilter() {
-		public boolean accept(File dir, String name) {
-			return name.equalsIgnoreCase("VirtualDJ Local Database v6.xml");
-		}
-	};
 
-	private final VDJTable table;
+	private final Table table;
+	private final JMenu fileMenu;
+	private final JMenuItem loadMenuItem;
+	private final JMenuItem saveMenuItem;
+	private final JMenuItem exitMenuItem;
+	private final JMenu viewMenu;
 	private final JMenuItem viewAudioMenuItem;
 	private final JMenuItem viewVideoMenuItem;
 	private final JMenuItem viewKaraokeMenuItem;
+	private final JMenuItem viewHiddenMenuItem;
 	private final JTextField searchTextField;
 	private final JLabel statusBar;
 
@@ -68,14 +68,14 @@ public class Main extends JFrame
 			 *
 			 */
 			{
-				JMenu menu = new JMenu("File");
-				menuBar.add(menu);
+				fileMenu = new JMenu("File");
+				menuBar.add(fileMenu);
 
-				JMenuItem menuItem = new JMenuItem("Reload Database(s)");
-				menuItem.addActionListener(new ActionListener() {
+				loadMenuItem = new JMenuItem("Reload Database(s)");
+				loadMenuItem.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						try {
-							loadAllDatabases();
+							database = loadAllDatabases();
 						}
 						catch (Exception e1) {
 							JOptionPane.showMessageDialog(null,
@@ -87,10 +87,10 @@ public class Main extends JFrame
 					}
 
 				});
-				menu.add(menuItem);
+				fileMenu.add(loadMenuItem);
 
-				menuItem = new JMenuItem("Save Database(s)");
-				menuItem.addActionListener(new ActionListener()
+				saveMenuItem = new JMenuItem("Save Database(s)");
+				saveMenuItem.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e)
 					{
@@ -111,26 +111,26 @@ public class Main extends JFrame
 					}
 
 				});
-				menu.add(menuItem);
+				fileMenu.add(saveMenuItem);
 
-				menu.add(new JSeparator());
-				menuItem = new JMenuItem("Exit");
-				menuItem.addActionListener(new ActionListener()
+				fileMenu.add(new JSeparator());
+				exitMenuItem = new JMenuItem("Exit");
+				exitMenuItem.addActionListener(new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e) {
 						System.exit(0);
 					}
 
 				});
-				menu.add(menuItem);
+				fileMenu.add(exitMenuItem);
 			}
 
 			/*
 			 *
 			 */
 			{
-				JMenu menu = new JMenu("View");
-				menuBar.add(menu);
+				viewMenu = new JMenu("View");
+				menuBar.add(viewMenu);
 
 				viewAudioMenuItem = new JMenuItem("Hide Audio Files");
 				viewAudioMenuItem.addActionListener(new ActionListener() {
@@ -139,7 +139,7 @@ public class Main extends JFrame
 					}
 
 				});
-				menu.add(viewAudioMenuItem);
+				viewMenu.add(viewAudioMenuItem);
 
 				viewVideoMenuItem = new JMenuItem("Hide Video Files");
 				viewVideoMenuItem.addActionListener(new ActionListener() {
@@ -148,7 +148,7 @@ public class Main extends JFrame
 					}
 
 				});
-				menu.add(viewVideoMenuItem);
+				viewMenu.add(viewVideoMenuItem);
 
 				viewKaraokeMenuItem = new JMenuItem("Hide Karaoke Files");
 				viewKaraokeMenuItem.addActionListener(new ActionListener() {
@@ -157,7 +157,18 @@ public class Main extends JFrame
 					}
 
 				});
-				menu.add(viewKaraokeMenuItem);
+				viewMenu.add(viewKaraokeMenuItem);
+
+				viewMenu.add(new JSeparator());
+				viewHiddenMenuItem = new JMenuItem("View Hidden Files");
+				viewHiddenMenuItem.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e) {
+						toggleViewType(viewHiddenMenuItem);
+					}
+
+				});
+				viewMenu.add(viewHiddenMenuItem);
 			}
 		}
 
@@ -190,13 +201,13 @@ public class Main extends JFrame
 			searchTextField.addKeyListener(new KeyAdapter()
 			{
 				@Override
-				public void keyPressed(KeyEvent e)
+				public void keyReleased(KeyEvent e)
 				{
-					if (database != null)
-					{
-						String filter = searchTextField.getText();
-						table.filter(filter);
-					}
+					// no action if no databases have been loaded
+					if (database == null) return;
+
+					String filter = searchTextField.getText();
+					table.filter(filter);
 				}
 
 			});
@@ -207,7 +218,7 @@ public class Main extends JFrame
 			/*
 			 * create the table to display the loaded database
 			 */
-			JScrollPane scrollPane = new JScrollPane(table = new VDJTable());
+			JScrollPane scrollPane = new JScrollPane(table = new Table());
 			add(scrollPane, BorderLayout.CENTER);
 		}
 
@@ -261,49 +272,37 @@ public class Main extends JFrame
 			} catch (Exception e1) { e1.printStackTrace(); }
 		}
 
-		/* start the application */
-		new Main();
+		new Main(); // start the application
 
 	}
 
 	private Database loadAllDatabases() throws Exception
 	{
-		/* temporary variable to store the parent database */
-		Database database = null;
+		File[] files = Database.getDbFiles();
+		Database systemDb = Database.load(files[0]);
 
-		File systemDbFile = Database.getSystemDbFile();
-		if (systemDbFile.exists()) database = Database.load(systemDbFile);
-
-		for (File drive : File.listRoots())
+		for (int i = 1; i < files.length; i++)
 		{
-			/* skip unreadable devices, e.g. empty optical media */
-			if (!drive.canRead()) continue;
-
-			File[] files = drive.listFiles(FILE_NAME_FILTER);
-			if (files.length == 1)
-			{
-				Database tmp = Database.load(files[0]);
-
-				if (database != null) database.merge(tmp);
-				else database = tmp;
-			}
+			Database localDb = Database.load(files[i]);
+			systemDb.merge(localDb);
 		}
 
-		table.setTableData(database);
-		statusBar.setText(database.getSongCount() + " entries loaded");
+		table.setTableData(systemDb);
+		statusBar.setText(systemDb.getSongCount() + " entries loaded");
 
-		return database;
+		return systemDb;
 	}
 
 	private void toggleViewType(JMenuItem menuItem)
 	{
-		String[] split = menuItem.getText().toLowerCase().split(" ");
-		split[0] = (split[0].equals("hide")) ? "Show" : "Hide";
-		menuItem.setText(split[0] + " " + split[1]);
+		String[] split = menuItem.getText().split(" ");
+		split[0] = (split[0].equals("Hide")) ? "Show" : "Hide";
+		menuItem.setText(split[0] + " " + split[1] + " " + split[2]);
 
-		if (split[1].equals("audio"))	table.toggleShowAudio();	else
-		if (split[1].equals("video"))	table.toggleShowVideo();	else
-		if (split[1].equals("karaoke"))	table.toggleShowKaraoke();
+		if (split[1].equals("Audio"))	table.toggleShowAudio();	else
+		if (split[1].equals("Video"))	table.toggleShowVideo();	else
+		if (split[1].equals("Karaoke"))	table.toggleShowKaraoke();	else
+		if (split[1].equals("Hidden"))	table.toggleShowHidden();
 	}
 
 }

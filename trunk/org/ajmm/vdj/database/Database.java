@@ -8,6 +8,8 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -22,7 +24,7 @@ import org.ajmm.vdj.xml.VDJXmlWriter;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.28
+ * @version	2010.06.30
  */
 public class Database extends XmlNode
 {
@@ -103,7 +105,7 @@ public class Database extends XmlNode
 
 	public boolean merge(Database database)
 	{
-		/* cannot merge a database with null or itself */
+		// cannot merge a database with null or itself
 		if (database == null || database == this) return false;
 
 		favorites.addAll(database.favorites);
@@ -296,6 +298,27 @@ public class Database extends XmlNode
 				0, file.getAbsolutePath().indexOf('\\'));
 	}
 
+	public static File[] getDbFiles() throws Exception
+	{
+		List<File> dbFiles = new LinkedList<File>();
+		File systemDbFile = Database.getSystemDbFile();
+		String systemDbDrive = getDrive(systemDbFile);
+		dbFiles.add(systemDbFile);
+
+		for (File root : File.listRoots())
+		{
+			// ignore unmounted drives and drive hosting the system database
+			if (!root.canRead() || systemDbDrive == getDrive(root)) continue;
+
+			File localDbFile = new File(root, "VirtualDJ Local Database v6.xml");
+			if (localDbFile.exists() && localDbFile.canWrite()) {
+				dbFiles.add(localDbFile);
+			}
+		}
+
+		return dbFiles.toArray(new File[dbFiles.size()]);
+	}
+
 	private static Map<String, File> getDbFileMap() throws Exception
 	{
 		Map<String, File> dbFileMap = new TreeMap<String, File>();
@@ -318,7 +341,7 @@ public class Database extends XmlNode
 
 	public static File getSystemDbFile() throws Exception
 	{
-		/* return cached system database file if available */
+		// return cached system database file if available
 		if (systemDbFile != null) return systemDbFile;
 
 		String os = System.getProperty("os.name");

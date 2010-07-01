@@ -3,6 +3,12 @@ package org.ajmm.framework.xml;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
+/**
+*
+*
+* @author	Andrew Mackrodt
+* @version	2010.06.17
+*/
 public abstract class XmlReader
 {
 	protected static final Logger logger = Logger.getLogger(XmlReader.class.getName());

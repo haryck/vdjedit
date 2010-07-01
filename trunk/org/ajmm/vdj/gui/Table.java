@@ -1,5 +1,6 @@
 package org.ajmm.vdj.gui;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
@@ -21,24 +22,25 @@ import org.ajmm.vdj.database.Song;
  * @author	Andrew Mackrodt
  * @version	2010.06.30
  */
-public class VDJTable extends JTable
+public class Table extends JTable
 {
 	private static final long serialVersionUID = 8358734115640035667L;
 
-	private final VDJTableModel  model;
-	private final VDJTableHeader header;
+	private final TableModel  model;
+	private final ColumnManager cm;
 	private final JPopupMenu bpmContextMenu;
 
 	private boolean showAudio = true;
 	private boolean showVideo = true;
 	private boolean showKaraoke = true;
+	private boolean showHidden = false;
 
 	private Set<Song> songs;
 
-	public VDJTable()
+	public Table()
 	{
-		model = new VDJTableModel();
-		header = new VDJTableHeader(this);
+		model = new TableModel();
+		cm = new ColumnManager(this);
 		bpmContextMenu = new JPopupMenu();
 
 		setModel(model);
@@ -50,24 +52,21 @@ public class VDJTable extends JTable
 		JMenuItem menuItem = new JMenuItem("Half BPM");
 		menuItem.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("unchecked")
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				if (e.getButton() == MouseEvent.BUTTON1)
+				// only act if the left mouse button has been pressed
+				if (e.getButton() != MouseEvent.BUTTON1) return;
+
+				for (int i : getSelectedRows())
 				{
-					for (int i : getSelectedRows())
-					{
-						Vector<Song> vector =
-							(Vector<Song>)model.getDataVector().get(i);
-						Song song = vector.get(0);
-						int bpm = song.bpm().getInternalBpm();
-						song.bpm().setInternalBpm(bpm*2);
-						int[] selectedRows = getSelectedRows();
-						model.fireTableDataChanged();
-						for (int j : selectedRows) {
-							changeSelection(j, 0, true, false);
-						}
+					Song song = model.getSong(i);
+					int bpm = song.bpm().getVdjBpm();
+					song.bpm().setVdjBpm(bpm*2);
+					int[] selectedRows = getSelectedRows();
+					model.fireTableDataChanged();
+					for (int j : selectedRows) {
+						changeSelection(j, 0, true, false);
 					}
 				}
 			}
@@ -77,24 +76,21 @@ public class VDJTable extends JTable
 		menuItem = new JMenuItem("Double BPM");
 		menuItem.addMouseListener(new MouseAdapter()
 		{
-			@SuppressWarnings("unchecked")
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				if (e.getButton() == MouseEvent.BUTTON1)
+				// only act if the left mouse button has been pressed
+				if (e.getButton() != MouseEvent.BUTTON1) return;
+
+				for (int i : getSelectedRows())
 				{
-					for (int i : getSelectedRows())
-					{
-						Vector<Song> vector =
-							(Vector<Song>)model.getDataVector().get(i);
-						Song song = vector.get(0);
-						int bpm = song.bpm().getInternalBpm();
-						song.bpm().setInternalBpm((int)Math.round(bpm/2.0));
-						int[] selectedRows = getSelectedRows();
-						model.fireTableDataChanged();
-						for (int j : selectedRows) {
-							changeSelection(j, 0, true, false);
-						}
+					Song song = model.getSong(i);
+					int bpm = song.bpm().getVdjBpm();
+					song.bpm().setVdjBpm((int)Math.round(bpm/2.0));
+					int[] selectedRows = getSelectedRows();
+					model.fireTableDataChanged();
+					for (int j : selectedRows) {
+						changeSelection(j, 0, true, false);
 					}
 				}
 			}
@@ -106,51 +102,54 @@ public class VDJTable extends JTable
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
-				/* only act on a right mouse click */
-				if (e.getButton() == MouseEvent.BUTTON3)
-				{
-					boolean match = false;
-					int rowAtPoint = rowAtPoint(e.getPoint());
+				// only act if the right mouse button has been clicked
+				if (e.getButton() != MouseEvent.BUTTON3) return;
 
-					for (int selectedRow : getSelectedRows()) {
-						if (rowAtPoint == selectedRow) {
-							match = true; break;
-						}
-					}
-
-					if (!match) {
-						getSelectionModel()
-							.setSelectionInterval(rowAtPoint, rowAtPoint);
-					}
-
-					bpmContextMenu.setInvoker(VDJTable.this);
-					bpmContextMenu.setLocation(e.getXOnScreen(), e.getYOnScreen());
-					bpmContextMenu.setVisible(true);
+				if (!isCursorOverSelection(e.getPoint())) {
+					int row = rowAtPoint(e.getPoint());
+					getSelectionModel().setSelectionInterval(row, row);
 				}
+
+				bpmContextMenu.setInvoker(Table.this);
+				bpmContextMenu.setLocation(e.getXOnScreen(), e.getYOnScreen());
+				bpmContextMenu.setVisible(true);
 			}
 		};
 	}
 
+	private boolean isCursorOverSelection(Point p)
+	{
+		boolean match = false;
+		int row = rowAtPoint(p);
+		for (int i : getSelectedRows()) {
+			if (row == i) {
+				match = true; break;
+			}
+		}
+		return match;
+	}
+
 	public void setTableData(Database database)
 	{
-		header.init();
-
 		songs = database.getSongs();
+		cm.init();
 		setTableData(songs);
 	}
 
 	private void setTableData(Collection<Song> songs, String filter)
 	{
-		/* no action if a database has not yet been loaded */
+		// no action if a database has not yet been loaded
 		if (songs == null) return;
 
 		Vector<Vector<Song>> dataVector = new Vector<Vector<Song>>();
 		for (Song song : songs)
 		{
-			if (song.getFlag() == Song.VALUE_FLAG_HIDDEN ||
-					!showVideo && song.getFlag() == Song.VALUE_FLAG_VIDEO ||
-					!showKaraoke && song.getFlag() == Song.VALUE_FLAG_KARAOKE ||
-					!showAudio && song.getFlag() == -1)
+			int flag = (song.getFlag() > 0) ? song.getFlag() : 0;
+			int type = flag - (flag & Song.VALUE_FLAG_HIDDEN);
+			if (!showHidden && flag != type
+					|| !showVideo && type == Song.VALUE_FLAG_VIDEO
+					|| !showKaraoke && type == Song.VALUE_FLAG_KARAOKE
+					|| !showAudio && type == 0)
 				continue;
 
 			String[] filters = filter.trim().replaceAll("  +", " ").toLowerCase().split(" ");
@@ -165,7 +164,7 @@ public class VDJTable extends JTable
 
 			for (int i = 0; i < filters.length; i++)
 			{
-				/* exit the loop if the search term was not found */
+				// exit the loop if the search term was not found
 				if (!searchString.contains(filters[i])) break;
 
 				if (i == filters.length-1)
@@ -183,16 +182,18 @@ public class VDJTable extends JTable
 
 	private void setTableData(Collection<Song> songs)
 	{
-		/* no action if a database has not yet been loaded */
+		// no action if a database has not yet been loaded
 		if (songs == null) return;
 
 		Vector<Vector<Song>> dataVector = new Vector<Vector<Song>>();
 		for (Song song : songs)
 		{
-			if (song.getFlag() == Song.VALUE_FLAG_HIDDEN ||
-					!showVideo && song.getFlag() == Song.VALUE_FLAG_VIDEO ||
-					!showKaraoke && song.getFlag() == Song.VALUE_FLAG_KARAOKE ||
-					!showAudio && song.getFlag() == -1)
+			int flag = (song.getFlag() > 0) ? song.getFlag() : 0;
+			int type = flag - (flag & Song.VALUE_FLAG_HIDDEN);
+			if (!showHidden && flag != type
+					|| !showVideo && type == Song.VALUE_FLAG_VIDEO
+					|| !showKaraoke && type == Song.VALUE_FLAG_KARAOKE
+					|| !showAudio && type == 0)
 				continue;
 
 			Vector<Song> v = new Vector<Song>();
@@ -229,6 +230,12 @@ public class VDJTable extends JTable
 		setTableData(songs);
 	}
 
+	public void toggleShowHidden()
+	{
+		showHidden = !showHidden;
+		setTableData(songs);
+	}
+
 	@Override
 	public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
 	{
@@ -238,7 +245,7 @@ public class VDJTable extends JTable
 			JComponent component = (JComponent)c;
 			String identifier = getColumnName(column);
 			String text = (identifier.equals("Filename"))
-					? (String)getValueAt(row, column) : null;			
+					? (String)getValueAt(row, column) : null;
 			component.setToolTipText(text);
 		}
 
