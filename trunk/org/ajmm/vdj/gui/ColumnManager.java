@@ -23,7 +23,7 @@ import org.ajmm.vdj.database.Song;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.30
+ * @version	2010.07.03
  */
 public class ColumnManager
 {
@@ -31,7 +31,7 @@ public class ColumnManager
 	private static final String[] NEW_COLUMN_NAMES = new String[] {
 		"Title", "Artist", "Album", "Genre", "BPM", "Key", "Length", "Bitrate",
 		"Year", "Comment", "Play Count", "First Seen", "First Play",
-		"Last Play", "Filename", "Filetype", "Filesize", "LinkedVideo",
+		"Last Play", "Cues", "Filename", "Filetype", "Filesize", "LinkedVideo",
 		"Composer", "Hidden"
 	};
 
@@ -129,6 +129,7 @@ public class ColumnManager
 			columns.get("First Seen").setPreferredWidth(120);
 			columns.get("First Play").setPreferredWidth(120);
 			columns.get("Last Play").setPreferredWidth(120);
+			columns.get("Cues").setPreferredWidth(60);
 			columns.get("Filename").setPreferredWidth(20);
 			columns.get("Filetype").setPreferredWidth(68);
 			columns.get("Filesize").setPreferredWidth(68);
@@ -178,8 +179,6 @@ public class ColumnManager
 						+ (ascend ? DSC_CHAR : ASC_CHAR);
 				column.setHeaderValue(name);
 				lastColumnId = column.getIdentifier();
-
-				System.out.println(column.getWidth());
 
 				model.fireTableDataChanged();
 			}
@@ -231,6 +230,7 @@ public class ColumnManager
 		if (identifier.equals("First Seen"))  value = song.infos().getFirstSeen();		else
 		if (identifier.equals("First Play"))  value = song.infos().getFirstPlay();		else
 		if (identifier.equals("Last Play"))   value = song.infos().getLastPlay();		else
+		if (identifier.equals("Cues"))		  value = song.cue().size();				else
 		if (identifier.equals("Filetype"))    value = TableModel.formatFileType(song);	else
 		if (identifier.equals("Filesize"))    value = song.getFileSize();				else
 		if (identifier.equals("LinkedVideo")) value = song.link().getVideo();			else
