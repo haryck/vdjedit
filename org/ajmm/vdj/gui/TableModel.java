@@ -113,6 +113,7 @@ public class TableModel extends DefaultTableModel
 		if (identifier.equals("First Seen"))  value = formatFirstSeen(song);			else
 		if (identifier.equals("First Play"))  value = formatFirstPlay(song);			else
 		if (identifier.equals("Last Play"))   value = formatLastPlay(song);				else
+		if (identifier.equals("Cues"))		  value = song.cue().size();				else
 		if (identifier.equals("Filetype"))    value = formatFileType(song);				else
 		if (identifier.equals("Filesize"))    value = formatFileSize(song);				else
 		if (identifier.equals("LinkedVideo")) value = song.link().getVideo();			else

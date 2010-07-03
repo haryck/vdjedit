@@ -8,6 +8,7 @@ import org.ajmm.framework.xml.XmlNodeFactory;
 import org.ajmm.vdj.database.Automix;
 import org.ajmm.vdj.database.BPM;
 import org.ajmm.vdj.database.Comment;
+import org.ajmm.vdj.database.Cue;
 import org.ajmm.vdj.database.Database;
 import org.ajmm.vdj.database.Display;
 import org.ajmm.vdj.database.FAME;
@@ -22,7 +23,7 @@ import org.ajmm.vdj.database.VirtualFolder;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.17
+ * @version	2010.07.03
  */
 public class VDJXmlNodeFactory extends XmlNodeFactory
 {
@@ -45,6 +46,7 @@ public class VDJXmlNodeFactory extends XmlNodeFactory
 		map.put( "FAME",				FAME.class				);
 		map.put( "Automix",				Automix.class			);
 		map.put( "Link",				Link.class				);
+		map.put( "Cue",					Cue.class				);
 	}
 
 	private VDJXmlNodeFactory() {

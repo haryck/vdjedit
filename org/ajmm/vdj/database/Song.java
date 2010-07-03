@@ -1,12 +1,15 @@
 package org.ajmm.vdj.database;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.ajmm.framework.xml.XmlNode;
 
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.19
+ * @version	2010.07.03
  */
 public class Song extends XmlNode implements Comparable<Song>
 {
@@ -22,6 +25,7 @@ public class Song extends XmlNode implements Comparable<Song>
 	private FAME fame;
 	private Automix automix;
 	private Link link;
+	private List<Cue> cue;
 
 	public Song() {
 		super("Song", 7);
@@ -63,7 +67,12 @@ public class Song extends XmlNode implements Comparable<Song>
 			if (element instanceof BPM)		bpm		= (BPM)element;		else
 			if (element instanceof FAME)	fame	= (FAME)element;	else
 			if (element instanceof Automix)	automix	= (Automix)element;	else
-			if (element instanceof Link)	link	= (Link)element;
+			if (element instanceof Link)	link	= (Link)element;	else
+			if (element instanceof Cue) {
+				if (cue == null)
+					cue = new LinkedList<Cue>();
+				cue.add((Cue)element);
+			}
 		}
 
 		return added;
@@ -103,6 +112,12 @@ public class Song extends XmlNode implements Comparable<Song>
 	{
 		if (automix == null) addChild(new Automix());
 		return automix;
+	}
+
+	public List<Cue> cue()
+	{
+		if (cue == null) cue = new LinkedList<Cue>();
+		return cue;
 	}
 
 	public Link link()

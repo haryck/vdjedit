@@ -10,6 +10,9 @@ import org.ajmm.framework.xml.XmlNode;
  */
 public class BPM extends XmlNode
 {
+	private static final int MIN_VDJ_BPM = 52920;	// 50.0 bpm
+	private static final int MAX_VDJ_BPM = 8820;	// 300.0 bpm
+
 	public BPM() {
 		super("BPM", 0);
 	}
@@ -30,8 +33,11 @@ public class BPM extends XmlNode
 		return getAttributeAsInteger("Bpm");
 	}
 
-	public int setVdjBpm(int bpm) {
-		return setAttribute("Bpm", bpm);
+	public int setVdjBpm(int bpm)
+	{
+		if (MAX_VDJ_BPM <= bpm && bpm <= MIN_VDJ_BPM)
+			return setAttribute("Bpm", bpm);
+		return getVdjBpm();
 	}
 
 	public int getPhase() {
