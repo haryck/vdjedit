@@ -32,7 +32,7 @@ public class ColumnManager
 		"Title", "Artist", "Album", "Genre", "BPM", "Key", "Length", "Bitrate",
 		"Year", "Comment", "Play Count", "First Seen", "First Play",
 		"Last Play", "Cues", "Filename", "Filetype", "Filesize", "LinkedVideo",
-		"Composer", "Hidden"
+		"Composer", "Volume", "Hidden"
 	};
 
 	private static final char ASC_CHAR = '\u25bc';
@@ -72,7 +72,9 @@ public class ColumnManager
 			{
 				@Override
 				public void mousePressed(MouseEvent e) {
-					toggleColumn(menuItem.getText());
+					if (e.getButton() == MouseEvent.BUTTON1) {
+						toggleColumn(menuItem.getText());
+					}
 				}
 			});
 		}
@@ -135,6 +137,7 @@ public class ColumnManager
 			columns.get("Filesize").setPreferredWidth(68);
 			columns.get("LinkedVideo").setPreferredWidth(256);
 			columns.get("Composer").setPreferredWidth(160);
+			columns.get("Volume").setPreferredWidth(64);
 			columns.get("Hidden").setPreferredWidth(66);
 
 		}
@@ -195,12 +198,31 @@ public class ColumnManager
 				Object o1 = getSongComparatorValue((Song)v1.get(0), identifier);
 				Object o2 = getSongComparatorValue((Song)v2.get(0), identifier);
 
+				if (o1 == null && o1 == o2) return 0;
 				if (o1 == null) return 1;
 				if (o2 == null) return -1;
-
-				int order = (o1 instanceof String)
-						? ((String)o1).compareToIgnoreCase((String)o2)
-						: (Integer)o1 - (Integer)o2;
+				
+				int order = 0;
+				
+				if (o1 instanceof String)
+				{
+					String s1 = (String)o1;
+					String s2 = (String)o2;
+					
+					order = s1.compareTo(s2);
+				}
+				
+				else if (o1 instanceof Integer)
+				{
+					int i1 = (Integer)o1;
+					int i2 = (Integer)o2;
+					
+					if (i1 == -1 && i1 == i2) return 0;
+					if (i1 == -1) return 1;
+					if (i2 == -1) return -1;
+					
+					order = i1 - i2;
+				}
 
 				if (descend) order *= -1;
 				if (identifier.equals("BPM")) order *= -1; // bpm column must be inverted
@@ -230,11 +252,12 @@ public class ColumnManager
 		if (identifier.equals("First Seen"))  value = song.infos().getFirstSeen();		else
 		if (identifier.equals("First Play"))  value = song.infos().getFirstPlay();		else
 		if (identifier.equals("Last Play"))   value = song.infos().getLastPlay();		else
-		if (identifier.equals("Cues"))		  value = song.cue().size();				else
+		if (identifier.equals("Cues"))		  value = song.cues().size();				else
 		if (identifier.equals("Filetype"))    value = TableModel.formatFileType(song);	else
 		if (identifier.equals("Filesize"))    value = song.getFileSize();				else
 		if (identifier.equals("LinkedVideo")) value = song.link().getVideo();			else
 		if (identifier.equals("Composer"))    value = song.display().getComposer();		else
+		if (identifier.equals("Volume"))      value = song.fame().getVdjVolume();		else
 		if (identifier.equals("Hidden"))  	  value = TableModel.formatHidden(song);
 
 		return value;
