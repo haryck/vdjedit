@@ -3,20 +3,29 @@ package org.ajmm.vdj.database;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.ajmm.framework.xml.XmlNode;
+import org.ajmm.vdj.StringUtil;
+import org.xml.sax.Attributes;
 
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.07.03
+ * @version	2010.07.12
  */
-public class Song extends XmlNode implements Comparable<Song>
+public class Song implements Comparable<Song>
 {
+	public static final String ELEMENT_NAME = "Song";
+	public static final String ATTRIB_FILE_PATH = "FilePath";
+	public static final String ATTRIB_FILE_SIZE = "FileSize";
+	public static final String ATTRIB_FLAG = "Flag";
 	public static final int VALUE_FLAG_HIDDEN		= 1;
 	public static final int VALUE_FLAG_SOUNDCARD	= 4;
 	public static final int VALUE_FLAG_KARAOKE		= 32;
 	public static final int VALUE_FLAG_VIDEO		= 64;
+	
+	private static final char[] ILLEGAL_CHARACTERS = new char[] {
+		'?', '<', '>', ':', '*', '|', '"'
+	};
 
 	private Display display;
 	private Infos infos;
@@ -25,109 +34,106 @@ public class Song extends XmlNode implements Comparable<Song>
 	private FAME fame;
 	private Automix automix;
 	private Link link;
-	private List<Cue> cue;
+	private List<Cue> cues;
+	private String filePath;
+	private int fileSize = -1;
+	private int flag = -1;
 
-	public Song() {
-		super("Song", 7);
+	public Song(String filePath, int fileSize) {
+		setFilePath(filePath);
+		setFileSize(fileSize);
 	}
-
+	
 	public String getFilePath() {
-		return getAttribute("FilePath");
+		return filePath;
 	}
 
-	public String setFilePath(String filePath) {
-		return setAttribute("FilePath", filePath);
+	public void setFilePath(String filePath) {
+		if (filePath != null && isValidFilePath(filePath))
+			this.filePath = filePath;
 	}
 
 	public int getFileSize() {
-		return getAttributeAsInteger("FileSize");
+		return fileSize;
 	}
 
-	public int setFileSize(int fileSize) {
-		return setAttribute("FileSize", fileSize);
+	public void setFileSize(int fileSize) {
+		if (fileSize > -1) this.fileSize = fileSize;
 	}
 
 	public int getFlag() {
-		return getAttributeAsInteger("Flag");
+		return flag;
 	}
 
-	public int setFlag(int flag) {
-		return setAttribute("Flag", flag);
+	public void setFlag(int flag) {
+		if (flag > -2) this.flag = flag;
 	}
 
-	@Override
-	public boolean addChild(XmlNode element)
-	{
-		boolean added = super.addChild(element);
-		if (added)
-		{
-			if (element instanceof Display)	display	= (Display)element;	else
-			if (element instanceof Infos)	infos	= (Infos)element;	else
-			if (element instanceof Comment)	comment	= (Comment)element;	else
-			if (element instanceof BPM)		bpm		= (BPM)element;		else
-			if (element instanceof FAME)	fame	= (FAME)element;	else
-			if (element instanceof Automix)	automix	= (Automix)element;	else
-			if (element instanceof Link)	link	= (Link)element;	else
-			if (element instanceof Cue) {
-				if (cue == null)
-					cue = new LinkedList<Cue>();
-				cue.add((Cue)element);
-			}
-		}
-
-		return added;
+	public Display display() {
+		return (display == null) ? display = new Display() : display;
 	}
 
-	public Display display()
-	{
-		if (display == null) addChild(new Display());
-		return display;
+	public Infos infos() {
+		return (infos == null) ? infos = new Infos() : infos;
 	}
 
-	public Infos infos()
-	{
-		if (infos == null) addChild(new Infos());
-		return infos;
+	public Comment comment() {
+		return (comment == null) ? comment = new Comment() : comment;
 	}
 
-	public Comment comment()
-	{
-		if (comment == null) addChild(new Comment());
-		return comment;
+	public BPM bpm() {
+		return (bpm == null) ? bpm = new BPM() : bpm;
 	}
 
-	public BPM bpm()
-	{
-		if (bpm == null) addChild(new BPM());
-		return bpm;
+	public FAME fame() {
+		return (fame == null) ? fame = new FAME() : fame;
 	}
 
-	public FAME fame()
-	{
-		if (fame == null) addChild(new FAME());
-		return fame;
+	public Automix automix() {
+		return (automix == null) ? automix = new Automix() : automix;
 	}
 
-	public Automix automix()
-	{
-		if (automix == null) addChild(new Automix());
-		return automix;
+	public List<Cue> cues() {
+		return (cues == null) ? cues = new LinkedList<Cue>() : cues;
 	}
 
-	public List<Cue> cue()
-	{
-		if (cue == null) cue = new LinkedList<Cue>();
-		return cue;
-	}
-
-	public Link link()
-	{
-		if (link == null) addChild(new Link());
-		return link;
+	public Link link() {
+		return (link == null) ? link = new Link() : link;
 	}
 
 	public int compareTo(Song s) {
-		return getFilePath().compareToIgnoreCase(s.getFilePath());
+		return (""+filePath).compareToIgnoreCase(""+s.filePath);
+	}
+	
+	public static Song parse(Attributes atts, SongContainer sc)
+	{
+		if (atts == null || atts.getLength() == 0 || sc == null) return null;
+		
+		String filePath = atts.getValue(Song.ATTRIB_FILE_PATH);
+		int fileSize = StringUtil.parseInt(atts.getValue(Song.ATTRIB_FILE_SIZE));
+		if (filePath != null && isValidFilePath(filePath) && fileSize > -1)
+		{
+			Song song = new Song(filePath, fileSize);
+			sc.addSong(song);
+			
+			int flag = StringUtil.parseInt(atts.getValue(Song.ATTRIB_FLAG));
+			if (flag > -1) song.setFlag(flag);
+			
+			return song;
+		}
+		
+		return null;
+	}
+	
+	private static boolean isValidFilePath(String string)
+	{
+		if (string == null || string.length() < 4) return false;
+		for (char c1 : string.substring(3).toCharArray()) {
+			for (char c2 : ILLEGAL_CHARACTERS) {
+				if (c1 == c2) return false;
+			}
+		}
+		return true;
 	}
 
 }

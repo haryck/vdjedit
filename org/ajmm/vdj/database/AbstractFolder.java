@@ -1,41 +1,42 @@
 package org.ajmm.vdj.database;
 
-import org.ajmm.framework.xml.XmlNode;
-
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.16
+ * @version	2010.07.12
  */
-public abstract class AbstractFolder extends XmlNode implements Comparable<AbstractFolder>
+public abstract class AbstractFolder implements Comparable<AbstractFolder>
 {
-	public AbstractFolder(String name, int childCapacity) {
-		super(name, childCapacity);
-	}
-
+	public static final String ELEMENT_NAME = "AbstractFolder";
+	public static final String ATTRIB_NAME = "Name";
+	public static final String ATTRIB_ORDER = "Order";
+	
+	private String name = "No Name";
+	private int order = 1;
+	
 	public AbstractFolder(String name) {
-		super(name);
+		setName(name);
 	}
 
-	public String getFolderName() {
-		return getAttribute("Name");
+	public String getName() {
+		return name;
 	}
 
-	public String setFolderName(String folderName) {
-		return setAttribute("Name", folderName);
+	public void setName(String name) {
+		if (name != null && name.length() > 0) this.name = name;
 	}
 
 	public int getOrder() {
-		return getAttributeAsInteger("Order");
+		return order;
 	}
 
-	public int setOrder(int order) {
-		return setAttribute("Order", order);
+	public void setOrder(int order) {
+		if (order > 0) this.order = order;
 	}
 
 	public int compareTo(AbstractFolder a) {
-		return getOrder() - a.getOrder();
+		return order - a.order;
 	}
 
 }

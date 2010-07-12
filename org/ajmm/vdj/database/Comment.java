@@ -1,25 +1,23 @@
 package org.ajmm.vdj.database;
 
-import org.ajmm.framework.xml.XmlNode;
-
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.07.01
+ * @version	2010.07.03
  */
-public class Comment extends XmlNode
+public class Comment
 {
-	public Comment() {
-		super("Comment", 0);
-	}
-
+	public static final String ELEMENT_NAME = "Comment";
+	
+	private String value;
+	
 	public String get() {
-		return super.getNodeValue();
+		return value;
 	}
 
-	public String set(String comment) {
-		return super.setNodeValue(comment);
+	public void set(String value) {
+		this.value = value;
 	}
 
 }

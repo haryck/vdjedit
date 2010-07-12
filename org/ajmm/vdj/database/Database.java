@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,19 +13,23 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.ajmm.framework.xml.XmlNode;
-import org.ajmm.vdj.database.exception.DuplicateSongException;
-import org.ajmm.vdj.xml.VDJXmlReader;
-import org.ajmm.vdj.xml.VDJXmlWriter;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.30
+ * @version	2010.07.12
  */
-public class Database extends XmlNode
+public class Database implements SongContainer
 {
+	public static final String ELEMENT_NAME = "VirtualDJ_Database";
+	public static final String ATTRIB_VERSION = "Version";
+	
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyyMMddhhmmss");
 	private static File systemDbFile;
 
@@ -35,21 +37,15 @@ public class Database extends XmlNode
 	private final Set<FilterFolder> filters;
 	private final Set<VirtualFolder> virtual;
 	private final Set<Song> songs;
+	private int version;
 	private File file;
 
 	public Database()
 	{
-		/*
-		 * use a small value for childCapacity as only unknown elements are
-		 * passed to the super's xmlnode set - normally there will be 0
-		 * unknown elements so this should be enough
-		 */
-		super("VirtualDJ_Database", 16);
-
-		favorites	= new TreeSet<FavoriteFolder>();
-		filters		= new TreeSet<FilterFolder>();
-		virtual		= new TreeSet<VirtualFolder>();
-		songs		= new TreeSet<Song>();
+		favorites = new TreeSet<FavoriteFolder>();
+		filters	= new TreeSet<FilterFolder>();
+		virtual	= new TreeSet<VirtualFolder>();
+		songs = new TreeSet<Song>();
 	}
 
 	public File getSuggestedFile() {
@@ -61,7 +57,11 @@ public class Database extends XmlNode
 	}
 
 	public int getVersion() {
-		return getAttributeAsInteger("Version");
+		return version;
+	}
+	
+	public void setVersion(int version) {
+		if (version > -1) this.version = version;
 	}
 
 	public Set<FavoriteFolder> getFavoriteFolders() {
@@ -76,12 +76,20 @@ public class Database extends XmlNode
 		return Collections.unmodifiableSet(virtual);
 	}
 
-	public boolean addFolder(AbstractFolder folder) {
-		return addChild(folder);
+	public boolean addFolder(AbstractFolder folder)
+	{
+		if (folder instanceof FavoriteFolder) return favorites.add((FavoriteFolder)folder);
+		if (folder instanceof FilterFolder) return filters.add((FilterFolder)folder);
+		if (folder instanceof VirtualFolder) return virtual.add((VirtualFolder)folder);
+		return false;
 	}
 
-	public boolean removeFolder(AbstractFolder folder) {
-		return removeChild(folder);
+	public boolean removeFolder(AbstractFolder folder)
+	{
+		if (folder instanceof FavoriteFolder) return favorites.remove((FavoriteFolder)folder);
+		if (folder instanceof FilterFolder) return filters.remove((FilterFolder)folder);
+		if (folder instanceof VirtualFolder) return virtual.remove((VirtualFolder)folder);
+		return false;
 	}
 
 	public int getSongCount() {
@@ -92,15 +100,12 @@ public class Database extends XmlNode
 		return Collections.unmodifiableSet(songs);
 	}
 
-	public boolean addSong(Song song) throws DuplicateSongException
-	{
-		if (!addChild(song)) throw new DuplicateSongException();
-
-		return true;
+	public boolean addSong(Song song) {
+		return songs.add(song);
 	}
 
 	public boolean removeSong(Song song) {
-		return removeChild(song);
+		return songs.remove(song);
 	}
 
 	public boolean merge(Database database)
@@ -114,72 +119,6 @@ public class Database extends XmlNode
 		songs.addAll(database.songs);
 
 		return true;
-	}
-
-	@Override
-	public boolean hasChildren() {
-		return getChildCount() > 0;
-	}
-
-	@Override
-	public boolean hasChild(XmlNode element)
-	{
-		if (element instanceof Song)			return songs.contains(element);		else
-		if (element instanceof FavoriteFolder)	return favorites.contains(element);	else
-		if (element instanceof FilterFolder)	return filters.contains(element);	else
-		if (element instanceof VirtualFolder)	return virtual.contains(element);
-
-		return super.hasChild(element);
-	}
-
-	@Override
-	public boolean addChild(XmlNode element)
-	{
-		if (element instanceof Song)			return songs.add((Song)element);				else
-		if (element instanceof FavoriteFolder)	return favorites.add((FavoriteFolder)element);	else
-		if (element instanceof FilterFolder)	return filters.add((FilterFolder)element);		else
-		if (element instanceof VirtualFolder)	return virtual.add((VirtualFolder)element);
-
-		return super.addChild(element);
-	}
-
-	@Override
-	public boolean removeChild(XmlNode element)
-	{
-		if (element instanceof Song)			return songs.remove(element);		else
-		if (element instanceof FavoriteFolder)	return favorites.remove(element);	else
-		if (element instanceof FilterFolder)	return filters.remove(element);		else
-		if (element instanceof VirtualFolder)	return virtual.remove(element);
-
-		return super.removeChild(element);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Set<XmlNode> getChildren()
-	{
-		Set<XmlNode> nodes = new LinkedHashSet<XmlNode>();
-		Set<XmlNode>[] s = new Set[] {
-			favorites, filters, virtual, songs, super.getChildren()
-		};
-		for (int i = 0; i < s.length; i++)
-		{
-			Iterator<XmlNode> itr = s[i].iterator();
-			while (itr.hasNext()) {
-				nodes.add(itr.next());
-			}
-		}
-		return Collections.unmodifiableSet(nodes);
-	}
-
-	@Override
-	public int getChildCount() {
-		return
-				super.getChildCount() +
-				favorites.size() +
-				filters.size() +
-				virtual.size() +
-				songs.size();
 	}
 
 	public void save() throws Exception
@@ -215,7 +154,7 @@ public class Database extends XmlNode
 				}
 			}
 
-			VDJXmlWriter.save(database, database.getSuggestedFile().getAbsolutePath());
+//			VDJXmlWriter.save(database, database.getSuggestedFile().getAbsolutePath());
 		}
 	}
 
@@ -233,14 +172,80 @@ public class Database extends XmlNode
 
 	public static Database load(File file) throws Exception
 	{
-		Database database = VDJXmlReader.parse(file.getAbsolutePath());
+		final Database database = new Database();
+		
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		SAXParser parser = factory.newSAXParser();
+		parser.parse(file.getAbsolutePath(), new DefaultHandler()
+		{
+			private StringBuilder sb;
+			private Song song;
+
+			@Override
+			public void endElement(String uri, String localName, String qName)
+			{
+				if (sb != null) // only act on comments text
+				{
+					String comment = sb.toString();
+					song.comment().set(comment);
+					sb = null; // clear the buffer so it's not processed again
+				}
+			}
+
+			@Override
+			public void startElement(String uri, String localName, String qName, Attributes atts)
+			{
+				sb = null;
+				SongContainer container = database;
+				if (qName.equals("Song")) song = Song.parse(atts, container);				   else
+				if (qName.equals("VirtualFolder")) VirtualFolder.parse(atts, database); 	   else
+				if (qName.equals("FavoriteFolder")) FavoriteFolder.parse(atts, database);	   else
+				if (qName.equals("FilterFolder")) FilterFolder.parse(atts, database);		   else
+				if (song != null)
+				{			
+					if (qName.equals(Display.ELEMENT_NAME)) song.display().parse(atts); else
+					if (qName.equals(Infos.ELEMENT_NAME))	song.infos().parse(atts);	else
+					if (qName.equals(BPM.ELEMENT_NAME))		song.bpm().parse(atts);	    else
+					if (qName.equals(FAME.ELEMENT_NAME))	song.fame().parse(atts);    else
+					if (qName.equals(Automix.ELEMENT_NAME)) song.automix().parse(atts); else
+					if (qName.equals(Link.ELEMENT_NAME))	song.link().parse(atts);	else
+					if (qName.equals(Cue.ELEMENT_NAME))		Cue.parse(atts, song);	    else
+					if (qName.equals(Comment.ELEMENT_NAME)) sb = new StringBuilder();
+				}
+			}
+
+			@Override
+			public void characters(char[] ch, int start, int length)
+			{
+				// no action on empty string or non-comment text
+				if (length == 0 || sb == null) return;
+
+				int off = start;
+				int len = length;
+
+				for (int i = 0; i < length; i++)
+				{
+					if (ch[off] != ' ')
+						break;
+					off++;
+					len--;
+				}
+
+				for (int i = start + length - 1; i > start; i--)
+				{
+					if (ch[off] != ' ')
+						break;
+					len--;
+				}
+
+				if (len > 0) sb.append(new String(ch, off, len));
+			}
+
+		});
+
 		database.setSuggestedFile(file);
 		database.fixFilePaths();
 		return database;
-	}
-
-	public static Database load(String location) throws Exception {
-		return VDJXmlReader.parse(location);
 	}
 
 	private Database[] split() throws Exception
@@ -271,7 +276,7 @@ public class Database extends XmlNode
 				databases.put(dbFile, tmp);
 			}
 
-			tmp.addChild(song);
+			addSong(song);
 		}
 
 		Database[] databaseArray = new Database[databases.size()];
@@ -367,17 +372,12 @@ public class Database extends XmlNode
 		return systemDbFile;
 	}
 
-	private static Database copyStructure(Database database, File file)
+	private static Database copyStructure(Database db, File file)
 	{
-		Database db = new Database();
-		db.setSuggestedFile(file);
-
-		Map<String, String> attributes = database.getAttributes();
-		for (String attribute : attributes.keySet()) {
-			db.setAttribute(attribute, attributes.get(attribute));
-		}
-
-		return db;
+		Database copy = new Database();
+		copy.setVersion(db.getVersion());
+		copy.setSuggestedFile(file);
+		return copy;
 	}
-
+	
 }

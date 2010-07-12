@@ -1,6 +1,6 @@
 package org.ajmm.vdj.gui;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.Vector;
 
 import javax.swing.table.DefaultTableModel;
@@ -12,7 +12,7 @@ import org.ajmm.vdj.database.Song;
  *
  *
  * @author	Andrew Mackrodt
- * @version	2010.06.30
+ * @version	2010.07.03
  */
 public class TableModel extends DefaultTableModel
 {
@@ -26,21 +26,24 @@ public class TableModel extends DefaultTableModel
 	public static String formatFileSize(Song song)
 	{
 		int fileSize = song.getFileSize();
-		return (fileSize < 1) ? null : Math.round(fileSize / 10485.76)/100.0+" mb";
+		return (fileSize > -1) ? Math.round(fileSize / 10485.76)/100.0+" mb" : null;
 	}
 
 	public static String formatSongLength(Song song)
 	{
 		double length = song.infos().getSongLength();
-		int min = (int)(length/60.0);
-		int sec = (int)Math.round(length-60*min);
-		return min+":"+String.format("%02d", sec);
+		if (length > -1) {
+			int min = (int)(length/60.0);
+			int sec = (int)Math.round(length-60*min);
+			return min + ":" + String.format("%02d", sec);
+		}
+		return null;
 	}
 
 	public static double formatBpm(Song song)
 	{
 		double bpm = song.bpm().getBpm();
-		return Math.round(10*bpm)/10.0;
+		return (bpm > -1) ? Math.round(10*bpm)/10.0 : -1;
 	}
 
 	public static String formatFirstSeen(Song song) {
@@ -65,10 +68,16 @@ public class TableModel extends DefaultTableModel
 
 	private static String formatDateString(int vdjDate)
 	{
-		Date date = Infos.fromVdjDate(vdjDate);
-		return (date == null) ? null : SDF.format(date);
+		Calendar calendar = Infos.fromVdjDate(vdjDate);
+		return (calendar == null) ? null : SDF.format(calendar.getTime());
 	}
 
+	private static String formatVolume(Song song) {
+		double volume = song.fame().getVolume();
+		return (Double.isNaN(volume))
+			? null : (int)Math.round(10*volume)/10.0 + " dB";
+	}
+	
 	public static String formatHidden(Song song)
 	{
 		int flag = song.getFlag();
@@ -113,11 +122,12 @@ public class TableModel extends DefaultTableModel
 		if (identifier.equals("First Seen"))  value = formatFirstSeen(song);			else
 		if (identifier.equals("First Play"))  value = formatFirstPlay(song);			else
 		if (identifier.equals("Last Play"))   value = formatLastPlay(song);				else
-		if (identifier.equals("Cues"))		  value = song.cue().size();				else
+		if (identifier.equals("Cues"))		  value = song.cues().size();				else
 		if (identifier.equals("Filetype"))    value = formatFileType(song);				else
 		if (identifier.equals("Filesize"))    value = formatFileSize(song);				else
 		if (identifier.equals("LinkedVideo")) value = song.link().getVideo();			else
 		if (identifier.equals("Composer"))    value = song.display().getComposer();		else
+		if (identifier.equals("Volume"))      value = formatVolume(song);				else
 		if (identifier.equals("Hidden"))	  value = formatHidden(song);
 
 		// do not display negative numbers by returning value as null
